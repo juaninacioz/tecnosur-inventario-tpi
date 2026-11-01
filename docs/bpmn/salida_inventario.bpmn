@@ -1,0 +1,196 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_salida_inventario" targetNamespace="https://tecnosur.example/organizacion-empresarial">
+  <collaboration id="Collaboration_salida_inventario">
+    <participant id="Participant_Cliente" name="Cliente"/>
+    <participant id="Participant_TecnoSur" name="TecnoSur S.R.L." processRef="Process_salida_inventario"/>
+    <messageFlow id="M1" sourceRef="Participant_Cliente" targetRef="Request" name="Solicitud del cliente"/>
+  </collaboration>
+  <process id="Process_salida_inventario" name="Proceso de salida: venta o consumo de repuesto" isExecutable="false">
+    <laneSet id="LaneSet_TecnoSur">
+      <lane id="Lane_Solicitante" name="Ventas / Servicio técnico">
+        <flowNodeRef>Start</flowNodeRef>
+        <flowNodeRef>Request</flowNodeRef>
+        <flowNodeRef>Confirm</flowNodeRef>
+        <flowNodeRef>EndOK</flowNodeRef>
+      </lane>
+      <lane id="Lane_Sistema" name="Sistema de inventario">
+        <flowNodeRef>Check</flowNodeRef>
+        <flowNodeRef>Enough</flowNodeRef>
+        <flowNodeRef>Register</flowNodeRef>
+        <flowNodeRef>Minimum</flowNodeRef>
+        <flowNodeRef>Alert</flowNodeRef>
+        <flowNodeRef>EndAlert</flowNodeRef>
+        <flowNodeRef>Reject</flowNodeRef>
+        <flowNodeRef>EndReject</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="Start" name="Inicio">
+      <outgoing>F1</outgoing>
+    </startEvent>
+    <userTask id="Request" name="Solicitar producto y cantidad">
+      <incoming>F1</incoming>
+      <outgoing>F2</outgoing>
+    </userTask>
+    <serviceTask id="Check" name="Validar solicitud y consultar stock">
+      <incoming>F2</incoming>
+      <outgoing>F3</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Enough" name="¿Stock suficiente?" gatewayDirection="Diverging" default="F5">
+      <incoming>F3</incoming>
+      <outgoing>F4</outgoing>
+      <outgoing>F5</outgoing>
+    </exclusiveGateway>
+    <userTask id="Confirm" name="Confirmar venta o consumo">
+      <incoming>F4</incoming>
+      <outgoing>F6</outgoing>
+    </userTask>
+    <serviceTask id="Register" name="Registrar salida con usuario y origen">
+      <incoming>F6</incoming>
+      <outgoing>F7</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Minimum" name="¿Stock ≤ mínimo?" gatewayDirection="Diverging" default="F9">
+      <incoming>F7</incoming>
+      <outgoing>F8</outgoing>
+      <outgoing>F9</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Alert" name="Generar alerta para Compras">
+      <incoming>F8</incoming>
+      <outgoing>F10</outgoing>
+    </serviceTask>
+    <endEvent id="EndOK" name="Salida registrada">
+      <incoming>F9</incoming>
+    </endEvent>
+    <endEvent id="EndAlert" name="Salida y alerta">
+      <incoming>F10</incoming>
+    </endEvent>
+    <serviceTask id="Reject" name="Bloquear salida y avisar faltante">
+      <incoming>F5</incoming>
+      <outgoing>F11</outgoing>
+    </serviceTask>
+    <endEvent id="EndReject" name="Faltante">
+      <incoming>F11</incoming>
+    </endEvent>
+    <sequenceFlow id="F1" sourceRef="Start" targetRef="Request" name=""/>
+    <sequenceFlow id="F2" sourceRef="Request" targetRef="Check" name=""/>
+    <sequenceFlow id="F3" sourceRef="Check" targetRef="Enough" name=""/>
+    <sequenceFlow id="F4" sourceRef="Enough" targetRef="Confirm" name="Sí">
+      <conditionExpression xsi:type="tFormalExpression">stock_actual &gt;= cantidad_solicitada</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="F5" sourceRef="Enough" targetRef="Reject" name="No"/>
+    <sequenceFlow id="F6" sourceRef="Confirm" targetRef="Register" name=""/>
+    <sequenceFlow id="F7" sourceRef="Register" targetRef="Minimum" name=""/>
+    <sequenceFlow id="F8" sourceRef="Minimum" targetRef="Alert" name="Sí">
+      <conditionExpression xsi:type="tFormalExpression">stock_actual &lt;= stock_minimo</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="F9" sourceRef="Minimum" targetRef="EndOK" name="No"/>
+    <sequenceFlow id="F10" sourceRef="Alert" targetRef="EndAlert" name=""/>
+    <sequenceFlow id="F11" sourceRef="Reject" targetRef="EndReject" name=""/>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_salida_inventario">
+    <bpmndi:BPMNPlane id="BPMNPlane_salida_inventario" bpmnElement="Collaboration_salida_inventario">
+      <bpmndi:BPMNShape id="Shape_Participant_Cliente" bpmnElement="Participant_Cliente" isHorizontal="true">
+        <dc:Bounds x="20" y="28" width="2180" height="104"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Participant_TecnoSur" bpmnElement="Participant_TecnoSur" isHorizontal="true">
+        <dc:Bounds x="20" y="150" width="2180" height="372"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Solicitante" bpmnElement="Lane_Solicitante" isHorizontal="true">
+        <dc:Bounds x="130" y="150" width="2070" height="144"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Sistema" bpmnElement="Lane_Sistema" isHorizontal="true">
+        <dc:Bounds x="130" y="294" width="2070" height="228"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="Start">
+        <dc:Bounds x="294" y="197" width="46" height="46"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Request" bpmnElement="Request">
+        <dc:Bounds x="400" y="182" width="200" height="77"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Check" bpmnElement="Check">
+        <dc:Bounds x="632" y="342" width="210" height="78"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Enough" bpmnElement="Enough">
+        <dc:Bounds x="903" y="347" width="62" height="62"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Confirm" bpmnElement="Confirm">
+        <dc:Bounds x="1065" y="183" width="220" height="78"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Register" bpmnElement="Register">
+        <dc:Bounds x="1351" y="342" width="220" height="78"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Minimum" bpmnElement="Minimum">
+        <dc:Bounds x="1610" y="347" width="62" height="62"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Alert" bpmnElement="Alert">
+        <dc:Bounds x="1742" y="342" width="215" height="78"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndOK" bpmnElement="EndOK">
+        <dc:Bounds x="1800" y="203" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndAlert" bpmnElement="EndAlert">
+        <dc:Bounds x="2062" y="357" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Reject" bpmnElement="Reject">
+        <dc:Bounds x="1065" y="411" width="220" height="74"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndReject" bpmnElement="EndReject">
+        <dc:Bounds x="1351" y="421" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_F1" bpmnElement="F1">
+        <di:waypoint x="340" y="220"/>
+        <di:waypoint x="400" y="220"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F2" bpmnElement="F2">
+        <di:waypoint x="600" y="220"/>
+        <di:waypoint x="616" y="220"/>
+        <di:waypoint x="616" y="381"/>
+        <di:waypoint x="632" y="381"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F3" bpmnElement="F3">
+        <di:waypoint x="842" y="381"/>
+        <di:waypoint x="903" y="378"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F4" bpmnElement="F4">
+        <di:waypoint x="934" y="347"/>
+        <di:waypoint x="934" y="221"/>
+        <di:waypoint x="1065" y="221"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F5" bpmnElement="F5">
+        <di:waypoint x="934" y="409"/>
+        <di:waypoint x="934" y="448"/>
+        <di:waypoint x="1065" y="448"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F6" bpmnElement="F6">
+        <di:waypoint x="1285" y="221"/>
+        <di:waypoint x="1315" y="221"/>
+        <di:waypoint x="1315" y="381"/>
+        <di:waypoint x="1351" y="381"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F7" bpmnElement="F7">
+        <di:waypoint x="1571" y="381"/>
+        <di:waypoint x="1610" y="378"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F8" bpmnElement="F8">
+        <di:waypoint x="1672" y="378"/>
+        <di:waypoint x="1742" y="381"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F9" bpmnElement="F9">
+        <di:waypoint x="1641" y="347"/>
+        <di:waypoint x="1641" y="227"/>
+        <di:waypoint x="1800" y="227"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F10" bpmnElement="F10">
+        <di:waypoint x="1957" y="381"/>
+        <di:waypoint x="2062" y="381"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_F11" bpmnElement="F11">
+        <di:waypoint x="1285" y="448"/>
+        <di:waypoint x="1351" y="445"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_M1" bpmnElement="M1">
+        <di:waypoint x="500" y="132"/>
+        <di:waypoint x="500" y="182"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
